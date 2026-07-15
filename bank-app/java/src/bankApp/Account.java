@@ -15,6 +15,14 @@ public class Account {
         this.pin = pin;
     }
 
+        public int getAccountNumber() {
+        return number;
+    }
+
+    void setAccountNumber(int number){ //no modifier = package-private
+        this.number = number;
+    }
+
     public int checkBalance(String pin) {
         if (!this.pin.equals(pin)) throw new InvalidPinException("Invalid pin!");
         return balance;
@@ -35,4 +43,6 @@ public class Account {
         if (!sufficientFunds) throw new InsufficientFundsException("Insufficient Funds");
         balance = balance - amount;
     }
+
+
 }
