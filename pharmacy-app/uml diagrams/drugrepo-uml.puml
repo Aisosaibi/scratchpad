@@ -1,0 +1,34 @@
+@startuml
+'https://plantuml.com/class-diagram
+skinparam backgroundColor #1a1a1a
+skinparam classBackgroundColor #1a1a1a
+skinparam classBorderColor white
+skinparam classFontColor white
+skinparam classAttributeFontColor white
+skinparam arrowColor white
+skinparam arrowFontColor white
+skinparam classAttributeIconSize 0
+skinparam genericDisplay new
+hide circle
+
+interface Repository<T, ID> {
+  +count(): long
+  +save(entity: T): T
+  +findById(id: ID): T
+  +findAll(): List<T>
+  +deleteById(id: ID): void
+  +deleteAll(): void
+}
+
+interface DrugRepository extends Repository<Drug, Long> {
+}
+
+interface DispensedDrugsRepository extends Repository<DispensedDrugs, Long> {
+}
+
+interface UserRepository extends Repository<User, Long> {
+  +findByUsername(username: String): User
+}
+
+
+@enduml
