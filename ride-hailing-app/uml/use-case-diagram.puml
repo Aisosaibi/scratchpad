@@ -1,4 +1,42 @@
 @startuml
-Bob -> alice
-return greetings
+skinparam backgroundColor #1e1e1e
+skinparam defaultFontColor #ffffff
+skinparam ArrowColor #ffffff
+skinparam ActorBorderColor #ffffff
+skinparam ActorBackgroundColor #2d2d2d
+skinparam ActorFontColor #ffffff
+skinparam UsecaseBorderColor #ffffff
+skinparam UsecaseBackgroundColor #2d2d2d
+skinparam UsecaseFontColor #ffffff
+skinparam RectangleBorderColor #ffffff
+skinparam RectangleBackgroundColor #262626
+skinparam RectangleFontColor #ffffff
+
+left to right direction
+actor "Customer\n(Rider)" as Rider
+actor Driver
+
+rectangle "Ride Hailing System" {
+  usecase "Choose Destination" as UC1
+  usecase "Select Pickup Location" as UC2
+  usecase "Book a Ride" as UC3
+  usecase "Track Ride" as UC4
+  usecase "Make Payment" as UC6
+  usecase "Cancel Ride" as UCCancel
+  usecase "Accept Ride" as UC7
+  usecase "Decline Ride" as UC8
+  usecase "Update Ride Status" as UC10
+}
+
+Rider --> UC1
+Rider --> UC2
+Rider --> UC3
+Rider --> UC4
+Rider --> UC6
+Rider --> UCCancel
+
+Driver --> UC7
+Driver --> UC8
+Driver --> UC10
+Driver --> UCCancel
 @enduml

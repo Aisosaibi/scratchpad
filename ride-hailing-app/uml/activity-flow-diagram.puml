@@ -1,4 +1,31 @@
 @startuml
-Bob -> alice
-return greetings
+skinparam backgroundColor #1e1e1e
+skinparam defaultFontColor #ffffff
+skinparam ArrowColor #ffffff
+skinparam ActivityBorderColor #ffffff
+skinparam ActivityBackgroundColor #2d2d2d
+skinparam ActivityDiamondBorderColor #ffffff
+skinparam ActivityDiamondBackgroundColor #2d2d2d
+skinparam activityStartColor #ffffff
+skinparam activityEndColor #ffffff
+
+start
+:Rider confirms pickup location & destination;
+
+if (Is either location too far from current location?) then (yes)
+  :Show "unavailable for location";
+  end
+else (no)
+  :System searches for available drivers;
+  :Rider confirms order;
+  :System asks user to select payment method;
+  :Order sent to nearby available driver;
+
+  while (Driver responds) is (decline)
+    :System sends to next available driver;
+  endwhile (accept)
+
+  :Driver details sent to Customer;
+  end
+endif
 @enduml

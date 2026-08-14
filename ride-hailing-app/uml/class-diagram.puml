@@ -1,4 +1,74 @@
 @startuml
-Bob -> alice
-return greetings
+skinparam backgroundColor #1a1a1a
+skinparam classBackgroundColor #1a1a1a
+skinparam classBorderColor white
+skinparam classFontColor white
+skinparam classAttributeFontColor white
+skinparam arrowColor white
+skinparam arrowFontColor white
+skinparam classAttributeIconSize 0
+hide circle
+
+class Customer {
+  - customerId: Long
+  - name: String
+  - location: String
+  + getRideHistory()
+}
+
+class Driver {
+  - driverId: Long
+  - name: String
+  - currentLat: Double
+  - currentLng: Double
+  + acceptRide(ride: Ride)
+  + updateRideStatus(ride: Ride, status)
+}
+
+class Ride {
+  - rideId: Long
+  - pickupLat: Double
+  - pickupLng: Double
+  - dropoffLat: Double
+  - dropoffLng: Double
+  - status: RideStatus
+  - driver: Driver
+  + accept(driver: Driver)
+  + start()
+  + markArrived()
+  + complete()
+  + cancel()
+  + getRideDetails(): String
+}
+
+class Payment {
+  - paymentId: Long
+  - amount: Double
+  - method: String
+  - status: PaymentStatus
+  + processPayment()
+  + refund()
+}
+
+enum RideStatus {
+  PLACED
+  ACCEPTED
+  EN_ROUTE
+  ARRIVED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+Customer "1" -- "many" Ride
+Driver "1" -- "many" Ride
+Ride "1" -- "1" Payment
+Ride ..> RideStatus : uses
+Payment ..> PaymentStatus : uses
 @enduml

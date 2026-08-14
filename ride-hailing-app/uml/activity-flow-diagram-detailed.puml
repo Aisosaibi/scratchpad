@@ -1,0 +1,85 @@
+@startuml
+'skinparam backgroundColor #1e1e1e
+'skinparam defaultFontColor #ffffff
+'skinparam ArrowColor #ffffff
+'skinparam ActivityBorderColor #ffffff
+'skinparam ActivityBackgroundColor #2d2d2d
+'skinparam ActivityDiamondBorderColor #ffffff
+'skinparam ActivityDiamondBackgroundColor #2d2d2d
+'skinparam activityStartColor #ffffff
+'skinparam activityEndColor #ffffff
+'skinparam NoteBackgroundColor #2d2d2d
+'skinparam NoteBorderColor #ffffff
+
+start
+:Rider confirms pickup location & destination;
+
+if (Is either location too far from current location?) then (yes)
+  :Show "unavailable for location";
+  end
+else (no)
+  :System searches for available drivers;
+  :Rider confirms order;
+  :System asks user to select payment method;
+  :Order sent to nearby available driver;
+
+  while (Driver responds) is (decline)
+    :System sends to next available driver;
+  endwhile (accept)
+
+  :Driver details sent to Rider;
+  :Ride status = ACCEPTED;
+
+  label ActiveState
+  switch (Ride is active — Rider or Driver may:)
+  case (Track Ride)
+    :System checks ride status;
+    if (Current status?) then (PLACED / ACCEPTED)
+      :Show status + driver details;
+      goto ActiveState
+    elseif (EN_ROUTE)
+      while (Status still EN_ROUTE?) is (yes)
+        :Show live location + ETA;
+        :Poll periodically;
+      endwhile (status changed)
+      goto ActiveState
+    else (COMPLETED / CANCELLED)
+      :Show "ride no longer active";
+      end
+    endif
+
+  case (Cancel Ride)
+    :System checks current ride status;
+    if (Current status?) then (PLACED)
+      :Ride.cancel();
+      :Show confirmation;
+      end
+    elseif (ACCEPTED)
+      :Ride.cancel();
+      :Notify other party;
+      :Show confirmation;
+      end
+    elseif (EN_ROUTE)
+      if (Cancellation policy violated?) then (yes)
+        :Apply fee;
+        :Ride.cancel();
+        :Notify other party;
+        end
+      else (no)
+        :Ride.cancel();
+        :Notify other party;
+        end
+      endif
+    else (COMPLETED / CANCELLED)
+      :Show "cannot cancel";
+      end
+    endif
+
+  case (Update Ride Status\n(Driver only))
+    :start() → status = EN_ROUTE;
+    :markArrived() → status = ARRIVED;
+    :complete() → status = COMPLETED;
+    end
+  endswitch
+endif
+@enduml
