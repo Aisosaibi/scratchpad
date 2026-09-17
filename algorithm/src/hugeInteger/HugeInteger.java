@@ -38,7 +38,7 @@ public class HugeInteger {
         StringBuilder string = new StringBuilder();
         if (isNegative) { string.append("-"); }
         for (int digit: value) {
-             string.append(digit);
+            string.append(digit);
         }
         return string.toString();
     }
@@ -55,60 +55,31 @@ public class HugeInteger {
         return this.isNegative == aHugeInteger.isNegative && Arrays.equals(this.value, aHugeInteger.value);
     }
 
-
     public HugeInteger add(String input) {
         int[] inputValue = parse(input);
-        ArrayList<Integer> sum = new ArrayList<>();
 
         boolean inputIsLonger = inputValue.length > value.length;
+        int[] longer  = inputIsLonger ? inputValue : this.value;
+        int[] shorter = inputIsLonger ? this.value : inputValue;
 
-        int[] numerator = inputIsLonger ? inputValue : this.value;
-        int[] denominator = inputIsLonger ? this.value : inputValue;
-
-        int numLength = numerator.length;
-        int denLength = denominator.length;
-
-        for (int i = denLength - 1; i >= 0; i--) {
-            int numIx = i + (numLength - denLength);
-            sum.addFirst(numerator[numIx] + denominator[i]);
-        }
-
-        for (int i = (numLength - denLength) - 1; i >= 0; i--) {
-            sum.addFirst(numerator[i]);
-        }
-        round(sum);
+        ArrayList<Integer> sum = alignAndCombine(longer, shorter, false);
+        normalize(sum, false);
 
         String resultStr = sum.toString().replaceAll("[\\[\\], ]", "");
         return new HugeInteger(resultStr);
     }
 
-
-    private void round(ArrayList<Integer> input) {
-        boolean carry = false;
-
-        for (int i = input.size() - 1; i >= 0; i--) {
-            if (carry) {
-                input.set(i, input.get(i) + 1);
-                carry = false;
-            }
-
-            if (input.get(i) > 9) {
-                input.set(i, input.get(i) - 10);
-                carry = true;
-            }
-        }
-        // Insert a new digit at the front, do not overwrite index 0!
-        if (carry) {
-            input.addFirst(1);
-        }
-    }
-
     public HugeInteger subtract(String input) {
         int[] inputValue = parse(input);
 
-        boolean inputIsLarger  = compareMagnitude(inputValue, this.value) > 0;
-        ArrayList<Integer> difference = getDifference(inputIsLarger, inputValue);
-        roundSubtract(difference);
+        // Unlike add(), order matters here: whichever number is numerically
+        // larger has to be the one digits get subtracted FROM.
+        boolean inputIsLarger = compareMagnitude(inputValue, this.value) > 0;
+        int[] longer  = inputIsLarger ? inputValue : this.value;
+        int[] shorter = inputIsLarger ? this.value : inputValue;
+
+        ArrayList<Integer> difference = alignAndCombine(longer, shorter, true);
+        normalize(difference, true);
 
         while (difference.size() > 1 && difference.getFirst() == 0) {
             difference.removeFirst();
@@ -119,28 +90,56 @@ public class HugeInteger {
         return new HugeInteger(resultStr);
     }
 
-    private ArrayList<Integer> getDifference(boolean inputIsLarger, int[] inputValue) {
-        int[] minuend = inputIsLarger ? inputValue : this.value;
-        int[] subtrahend = inputIsLarger ? this.value : inputValue;
+    // Shared by add() and subtract(): walks both digit arrays right-to-left,
+    // combining aligned digits with + or -, then copies over whatever's left
+    // of the longer array once the shorter one runs out.
+    private ArrayList<Integer> alignAndCombine(int[] longer, int[] shorter, boolean isSubtraction) {
+        ArrayList<Integer> result = new ArrayList<>();
 
-        ArrayList<Integer> difference = new ArrayList<>();
+        int longerLength = longer.length;
+        int shorterLength = shorter.length;
 
-        int numLength = minuend.length;
-        int denLength = subtrahend.length;
-
-        for (int i = denLength - 1; i >= 0; i--) {
-            int numIx = i + (numLength - denLength);
-            difference.addFirst(minuend[numIx] - subtrahend[i]);
+        for (int i = shorterLength - 1; i >= 0; i--) {
+            int longerIx = i + (longerLength - shorterLength);
+            int combined = isSubtraction ? longer[longerIx] - shorter[i] : longer[longerIx] + shorter[i];
+            result.addFirst(combined);
         }
 
-        for (int i = (numLength - denLength) - 1; i >= 0; i--) {
-            difference.addFirst(minuend[i]);
+        for (int i = (longerLength - shorterLength) - 1; i >= 0; i--) {
+            result.addFirst(longer[i]);
         }
-        return difference;
+        return result;
+    }
+
+    // Shared by add() and subtract(): resolves any digit outside 0-9 by
+    // carrying (addition) or borrowing (subtraction) into the next column.
+    private void normalize(ArrayList<Integer> input, boolean isSubtraction) {
+        boolean carryOrBorrow = false;
+
+        for (int i = input.size() - 1; i >= 0; i--) {
+            if (carryOrBorrow) {
+                input.set(i, input.get(i) + (isSubtraction ? -1 : 1));
+                carryOrBorrow = false;
+            }
+
+            int digit = input.get(i);
+            boolean outOfRange = isSubtraction ? digit < 0 : digit > 9;
+
+            if (outOfRange) {
+                input.set(i, digit + (isSubtraction ? 10 : -10));
+                carryOrBorrow = true;
+            }
+        }
+
+        // Only addition can overflow past the front digit; subtraction never
+        // can, since compareMagnitude() guarantees longer >= shorter.
+        if (!isSubtraction && carryOrBorrow) {
+            input.addFirst(1);
+        }
     }
 
     private int compareMagnitude(int[] inputValue, int[] value) {
-        if(inputValue.length != value.length) {
+        if (inputValue.length != value.length) {
             return Integer.compare(inputValue.length, value.length);
         }
         for (int i = 0; i < inputValue.length; i++) {
@@ -149,22 +148,6 @@ public class HugeInteger {
             }
         }
         return 0;
-    }
-
-    private void roundSubtract(ArrayList<Integer> input) {
-        boolean borrow = false;
-
-        for (int i = input.size() - 1; i >= 0; i--) {
-            if (borrow) {
-                input.set(i, input.get(i) - 1);
-                borrow = false;
-            }
-
-            if (input.get(i) < 0) {
-                input.set(i, input.get(i) + 10);
-                borrow = true;
-            }
-        }
     }
 
 //
