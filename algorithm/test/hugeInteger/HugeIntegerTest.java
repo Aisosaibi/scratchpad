@@ -33,7 +33,7 @@ public class HugeIntegerTest {
     }
 
     @Test
-    @DisplayName("Should successfully add single digit numbers without carries")
+    @DisplayName("Should successfully subtract single digit numbers without borrow")
     void testSimpleSubtractionNoCarry() {
         HugeInteger num1 = new HugeInteger("3");
         HugeInteger result = num1.subtract("2");
@@ -56,7 +56,7 @@ public class HugeIntegerTest {
     void testSimpleSubtractionBorrow() {
         HugeInteger num1 = new HugeInteger("121");
         HugeInteger result = num1.subtract("8");
-        assertEquals("113", result.toString()); // Length expands from 1 to 2
+        assertEquals("113", result.toString());
     }
 
     @Test
@@ -80,7 +80,7 @@ public class HugeIntegerTest {
     void testSimpleSubtractionNegative() {
         HugeInteger num1 = new HugeInteger("7");
         HugeInteger result = num1.subtract("8");
-        assertEquals("15", result.toString()); // Length expands from 1 to 2
+        assertEquals("-1", result.toString());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class HugeIntegerTest {
     void testInputIsLonger() {
         HugeInteger num1 = new HugeInteger("45");
         HugeInteger result = num1.subtract("12300");
-        assertEquals("-12265", result.toString());
+        assertEquals("-12255", result.toString());
     }
 
 //    @Test

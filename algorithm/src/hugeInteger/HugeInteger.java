@@ -2,13 +2,22 @@ package hugeInteger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class HugeInteger {
     private final int[] value;
+    private final boolean isNegative;
+
+    private static final Pattern VALID_NUMBER = Pattern.compile("-?\\d+");
 
     public HugeInteger(String number) {
-        if (number.length() > 40) { throw new IllegalArgumentException("Maximum value exceeded!"); }
-        this.value = parse(number);
+        if (!VALID_NUMBER.matcher(number).matches()) {
+            throw new IllegalArgumentException("Input must be an optional '-' followed by digits only!");
+        }
+        isNegative = number.startsWith("-");
+        String digits = isNegative ? number.substring(1) : number;
+        if (digits.length() > 40) { throw new IllegalArgumentException("Maximum value exceeded!"); }
+        this.value = parse(digits);
     }
 
     public int[] parse(String input) {
@@ -27,6 +36,7 @@ public class HugeInteger {
     @Override
     public String toString(){
         StringBuilder string = new StringBuilder();
+        if (isNegative) { string.append("-"); }
         for (int digit: value) {
              string.append(digit);
         }
@@ -42,7 +52,7 @@ public class HugeInteger {
         // 3. Safe cast: now we know for a fact it's a HugeInteger
         HugeInteger aHugeInteger = (HugeInteger) object;
         // 4. Content check
-        return Arrays.equals(this.value, aHugeInteger.value);
+        return this.isNegative == aHugeInteger.isNegative && Arrays.equals(this.value, aHugeInteger.value);
     }
 
 
@@ -95,20 +105,66 @@ public class HugeInteger {
 
     public HugeInteger subtract(String input) {
         int[] inputValue = parse(input);
-        ArrayList<Integer> sum = new ArrayList<>();
 
-        int numLength = this.value.length;
-        int denLength = inputValue.length;
+        boolean inputIsLarger  = compareMagnitude(inputValue, this.value) > 0;
+        ArrayList<Integer> difference = getDifference(inputIsLarger, inputValue);
+        roundSubtract(difference);
+
+        while (difference.size() > 1 && difference.getFirst() == 0) {
+            difference.removeFirst();
+        }
+
+        String resultStr = difference.toString().replaceAll("[\\[\\], ]", "");
+        if (inputIsLarger) { resultStr = "-" + resultStr; }
+        return new HugeInteger(resultStr);
+    }
+
+    private ArrayList<Integer> getDifference(boolean inputIsLarger, int[] inputValue) {
+        int[] minuend = inputIsLarger ? inputValue : this.value;
+        int[] subtrahend = inputIsLarger ? this.value : inputValue;
+
+        ArrayList<Integer> difference = new ArrayList<>();
+
+        int numLength = minuend.length;
+        int denLength = subtrahend.length;
 
         for (int i = denLength - 1; i >= 0; i--) {
             int numIx = i + (numLength - denLength);
-            sum.addFirst(this.value[numIx] - inputValue[i]);
+            difference.addFirst(minuend[numIx] - subtrahend[i]);
         }
 
-        round(sum);
+        for (int i = (numLength - denLength) - 1; i >= 0; i--) {
+            difference.addFirst(minuend[i]);
+        }
+        return difference;
+    }
 
-        String resultStr = sum.toString().replaceAll("[\\[\\], ]", "");
-        return new HugeInteger(resultStr);
+    private int compareMagnitude(int[] inputValue, int[] value) {
+        if(inputValue.length != value.length) {
+            return Integer.compare(inputValue.length, value.length);
+        }
+        for (int i = 0; i < inputValue.length; i++) {
+            if (inputValue[i] != value[i]) {
+                return Integer.compare(inputValue[i], value[i]);
+            }
+        }
+        return 0;
+    }
+
+    private void roundSubtract(ArrayList<Integer> input) {
+        boolean borrow = false;
+
+        for (int i = input.size() - 1; i >= 0; i--) {
+            if (borrow) {
+                input.set(i, input.get(i) - 1);
+                borrow = false;
+            }
+
+            if (input.get(i) < 0) {
+                input.set(i, input.get(i) + 10);
+                borrow = true;
+            }
+        }
     }
 
 //
@@ -165,8 +221,8 @@ public class HugeInteger {
 //            input.add(0, carry);
 //        }
 //    }
-
-    //    public HugeInteger add(String input) {
+//
+//    public HugeInteger add(String input) {
 //        int[] inputValue = parse(input);
 //        ArrayList<Integer> sum = new ArrayList<>();
 //
@@ -191,6 +247,62 @@ public class HugeInteger {
 //        // Strip brackets and commas from ArrayList string representation
 //        String resultStr = sum.toString().replaceAll("[\\[\\], ]", "");
 //        return new HugeInteger(resultStr);
+//    }
+//
+//    public HugeInteger subtract(String input) {
+//        int[] inputValue = parse(input);
+//
+//        // Decide which digit array is numerically larger so we always
+//        // subtract the smaller from the larger, then reapply the sign after.
+//        boolean inputIsLarger = compareMagnitude(inputValue, this.value) > 0;
+//        int[] minuend    = inputIsLarger ? inputValue : this.value;
+//        int[] subtrahend = inputIsLarger ? this.value : inputValue;
+//
+//        ArrayList<Integer> difference = new ArrayList<>();
+//
+//        int i = minuend.length - 1;
+//        int j = subtrahend.length - 1;
+//
+//        while (i >= 0 || j >= 0) {
+//            int digit1 = (i >= 0) ? minuend[i] : 0;
+//            int digit2 = (j >= 0) ? subtrahend[j] : 0;
+//
+//            difference.add(0, digit1 - digit2);
+//
+//            i--;
+//            j--;
+//        }
+//
+//        roundSubtract(difference);
+//
+//        while (difference.size() > 1 && difference.get(0) == 0) {
+//            difference.remove(0);
+//        }
+//
+//        String resultStr = difference.toString().replaceAll("[\\[\\], ]", "");
+//        if (inputIsLarger) {
+//            resultStr = "-" + resultStr;
+//        }
+//        return new HugeInteger(resultStr);
+//    }
+
+//    private void roundSubtract(ArrayList<Integer> input) {
+//        int borrow = 0;
+//
+//        // Loop BACKWARDS since a borrow moves left, into more significant digits
+//        for (int i = input.size() - 1; i >= 0; i--) {
+//            int currentTotal = input.get(i) - borrow;
+//
+//            if (currentTotal < 0) {
+//                currentTotal += 10;
+//                borrow = 1;   // next (more significant) digit owes us one
+//            } else {
+//                borrow = 0;
+//            }
+//            input.set(i, currentTotal);
+//        }
+//        // Unlike round()'s leftover carry, a leftover borrow here would mean
+//        // subtrahend > minuend — which compareMagnitude() already prevents.
 //    }
 
 }
