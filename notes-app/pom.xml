@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Standard XML declaration - every .xml file starts this way. Not Maven-specific. -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+<!-- <project xmlns="http://maven.apache.org/POM/4.0.0"-->
+<!-- ^ Opens the root element. xmlns = "XML namespace" - tells any XML parser
+     "the tags in this file (groupId, dependency, etc.) mean what Maven defines
+     them to mean, at this specific POM schema URL, not some other tool's meaning
+     for the same tag names." -->
+<!--         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!-- ^ A second, generic namespace that XML itself uses (not Maven-specific) to
+     let this file point to a schema for VALIDATION - see next line. -->
+<!--        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">-->
+<!-- ^ Says "here is the .xsd (XML Schema Definition) file describing what tags
+     are legal in a Maven POM." Your IDE uses this to autocomplete/red-underline
+     mistakes. Maven itself barely needs this line to function - it's mainly
+     for tooling. -->
+
+    <modelVersion>4.0.0</modelVersion>
+    <!-- Which VERSION of the POM tag-structure/schema Maven should parse this
+         file with. Maven's POM format has changed across Maven's own history;
+         4.0.0 is the modern one, used by every Maven 2/3 project. You will
+         never change this line. It is not related to your project's own
+         <version> below - two completely different numbers. -->
+
+    <!-- =====================================================================
+         SECTION 1: Who made this project, and what is it called?
+         Together these three tags form what's called the GAV coordinate
+         (GroupId, ArtifactId, Version) - the unique address Maven uses to
+         refer to THIS project, the same addressing scheme used below to
+         refer to every dependency you pull in.
+         ===================================================================== -->
+
+    <groupId>org.aispace</groupId>
+    <!-- Your reverse-domain namespace. Convention borrowed from Java package
+         naming (which itself exists so two different companies' classes
+         never collide, e.g. com.google.X vs com.amazon.X). Doesn't need to
+         be a real domain you own - just needs to be unique to you. -->
+
+    <artifactId>notes-app</artifactId>
+    <!-- The project's own name within that namespace. This becomes part of
+         the final jar's filename: notes-app-0.0.1-SNAPSHOT.jar -->
+
+    <version>0.0.1-SNAPSHOT</version>
+    <!-- Your project's own version number, which YOU control and bump as you
+         release. SNAPSHOT is a Maven-specific suffix meaning "still under
+         active development, not a finished release" - it changes how Maven
+         caches this artifact (a SNAPSHOT is allowed to be re-downloaded/
+         re-built even if a same-named version already exists locally). -->
+
+
+    <!-- =====================================================================
+         A general-purpose key-value bag. Maven itself does NOTHING with
+         these keys on its own - it just stores them, like a dictionary.
+         They only matter because specific PLUGINS (separate pieces of code,
+         explained below) are written to go looking for specific key names
+         inside this bag.
+         ===================================================================== -->
+    <properties>
+
+        <maven.compiler.source>26</maven.compiler.source>
+        <!-- Just a stored string, "26", under the key name
+             "maven.compiler.source". Means nothing to Maven core.
+             ONE specific plugin - maven-compiler-plugin - is written to
+             search this bag for a key with exactly this name, and if found,
+             use it to decide which Java LANGUAGE VERSION's syntax to accept
+             (e.g. "26" allows newer language features than "17" would). -->
+
+        <maven.compiler.target>26</maven.compiler.target>
+        <!-- Same mechanism, different key: this one tells that same plugin
+             which BYTECODE version to emit (i.e. which JVM version can run
+             the compiled .class files). Source and target are usually set
+             to the same number, as here. -->
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Same mechanism again, different plugin: this key is read by
+             several plugins (compiler, resources) to decide what character
+             encoding to assume when reading your .java source files. Without
+             it, behavior depends on the OS Maven is running on, which is how
+             you get "works on my machine" bugs involving accented
+             characters. -->
+
+    </properties>
+
+
+    <!-- =====================================================================
+         SECTION 2: What do I actually need?
+         Each <dependency> block is itself a GAV coordinate - same three-part
+         address scheme as your own project above - pointing at SOMEONE
+         ELSE'S published jar that you want Maven to fetch and put on your
+         classpath.
+         ===================================================================== -->
+    <dependencies>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.46</version>
+            <scope>provided</scope>
+            <!-- scope = "when in the build process is this jar actually
+                 needed." "provided" means: needed to COMPILE your code
+                 (Lombok generates getters/setters/constructors from
+                 annotations at compile time), but NOT needed at RUNTIME, so
+                 it is excluded from the final packaged jar. Default scope
+                 (no tag at all, as in the three dependencies below) is
+                 "compile" - needed at both compile time AND runtime, and
+                 included in the final jar. -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-mongodb</artifactId>
+            <version>5.1.0</version>
+            <!-- No <scope> tag = default "compile" scope: on the classpath
+                 both when building and when running, and bundled into the
+                 final jar. -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>7.0.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+
+    </dependencies>
+
+
+    <!-- =====================================================================
+         SECTION 3: How do I get built into something runnable?
+         Maven runs a fixed, built-in sequence of phases automatically
+         (validate -> compile -> test -> package -> ...), each phase already
+         bound to a DEFAULT plugin you never have to declare (this is what
+         "implicitly runs" means - e.g. the compile phase already runs
+         maven-compiler-plugin with zero declaration from you, purely because
+         Maven ships that binding built in).
+         You only write a <plugin> block below when you want to ADD a plugin
+         that isn't bound by default, or override a default plugin's
+         settings.
+         ===================================================================== -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <!-- This plugin is NOT one of Maven's defaults - Spring
+                     Boot projects add it explicitly. It does two things:
+                     (1) makes `mvn spring-boot:run` a valid command, which
+                     starts your app directly; (2) changes what happens
+                     during the default "package" phase, so instead of a
+                     plain jar containing only YOUR classes, you get a "fat
+                     jar" - your classes PLUS every dependency jar above,
+                     all repackaged into one single runnable file, so
+                     `java -jar notes-app.jar` works on any machine with just
+                     a JVM installed. -->
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

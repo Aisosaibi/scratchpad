@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion> <!-- which POM schema version Maven should parse this with -->
+
+    <!--    The pom.xml stands for Project Object Model - it's a declaration of identity and need-->
+    <!--    Four things live in it-->
+
+    <!--  1. Who made this, and what is it called?-->
+
+    <!-- Sample GAV coordinates-->
+    <groupId>org.aispace</groupId>  <!-- My reverse-domain namespace-->
+    <artifactId>notes-app</artifactId> <!-- My project's own name-->
+    <version>0.0.1-SNAPSHOT</version> <!-- version - SNAPSHOT = still in development -->
+
+    <!-- General purpose key-value bag that Maven's plugins read from -->
+    <properties>
+        <maven.compiler.source>26</maven.compiler.source> <!-- read by maven-compiler-plugin, a DEFAULT plugin every build runs even though it's never declared below -->
+        <maven.compiler.target>26</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!--  2. What do I actually need? -->
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.46</version>
+            <scope>provided</scope> <!-- needed to COMPILE (generates getters/setters), not needed at runtime -->
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-mongodb</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>7.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+    </dependencies>
+
+    <!--  3. How do I get built into something runnable? -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId> <!-- lets `mvn spring-boot:run` work, and bundles everything above into one runnable "fat jar" -->
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
