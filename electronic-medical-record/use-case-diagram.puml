@@ -1,0 +1,42 @@
+@startuml EMR_UseCase_v1
+left to right direction
+skinparam actorStyle awesome
+'skinparam backgroundColor #1a1a1a
+'skinparam arrowColor white
+'skinparam arrowFontColor white
+
+actor "Front Desk Staff" as FrontDesk
+actor "Doctor/Nurse" as Doctor
+actor "Clinic Admin" as Admin
+actor "Staff" as Staff
+
+FrontDesk --|> Staff
+Doctor --|> Staff
+Admin --|> Staff
+
+usecase "Login" as UC_Login
+usecase "Register Patient" as UC_Register
+usecase "Search Patient" as UC_Search
+usecase "Schedule Appointment" as UC_Schedule
+usecase "View Medical History" as UC_History
+usecase "Log Visit\n(symptoms, diagnosis, notes)" as UC_Visit
+usecase "Record Prescription" as UC_Prescribe
+usecase "Manage User Accounts" as UC_Manage
+usecase "View Basic Reports" as UC_Reports
+
+Staff --> UC_Login
+
+FrontDesk --> UC_Register
+FrontDesk --> UC_Search
+FrontDesk --> UC_Schedule
+
+Doctor --> UC_History
+Doctor --> UC_Visit
+
+Admin --> UC_Manage
+Admin --> UC_Reports
+
+UC_History .> UC_Search : <<include>>
+UC_Visit .> UC_Prescribe : <<extend>>
+
+@enduml

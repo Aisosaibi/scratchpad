@@ -1,0 +1,75 @@
+@startuml
+skinparam backgroundColor #1a1a1a
+skinparam classBackgroundColor #1a1a1a
+skinparam classBorderColor white
+skinparam classFontColor white
+skinparam classAttributeFontColor white
+skinparam arrowColor white
+skinparam arrowFontColor white
+skinparam classAttributeIconSize 0
+hide circle
+
+class Patient {
+  -id: Integer
+  -name: String
+  -date_of_birth: Date
+  -gender: String
+  -phone_number: String
+  -address: String
+  -blood_group: BloodGroup
+  -visits: Visit [1..*]
+  +get_medical_history(start_date: Date, end_date: Date): Visit [1..*]
+  +add_visit(visit: Visit): void
+}
+
+enum BloodGroup {
+    O_POSITIVE
+    O_NEGATIVE
+    A_POSITIVE
+    A_NEGATIVE
+    B_POSITIVE
+    B_NEGATIVE
+    AB_POSITIVE
+    AB_NEGATIVE
+}
+
+class Visit {
+  -id: Integer
+  -patient_id: Integer
+  -doctor_id: Integer
+  -date: Date
+  -symptom: String
+  -diagnosis: String
+  -note: String
+  -prescriptions: Prescription [1..*]
+  +add_prescription(medicine_name: String, dosage: Float, duration: String): void
+}
+
+class Prescription {
+  -id: Integer
+  -visit_id: Integer
+  -medicine_name: String
+  -dosage: Float
+  -duration: String
+}
+
+class User {
+  -id: Integer
+  -name: String
+  -role: Role
+  -username: String
+  -password_hash: String
+  +record_visit(patient: Patient, symptom: String, diagnosis: String, note: String): Visit
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  FRONT_DESK
+}
+
+Patient "1" o-- "1..*" Visit: "has"
+User "1" -- "1..*" Visit: "records as a doctor"
+Visit "1" o-- "1..*" Prescription: generates
+@enduml
+
