@@ -1,10 +1,18 @@
 package ng.pharmacy.data.models;
 
 public class User {
+    private long id;
     private String username;
     private String password;
-    private long id;
-    private String fullname;
+    private String fullName;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getUsername() {
         return username;
@@ -22,19 +30,17 @@ public class User {
         this.password = password;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    void setId(long id) {
-        this.id = id;
-    }
-
     public String getFullName() {
-        return fullname;
+        return fullName;
     }
 
-    public void setFullName(String fullname) {
-        this.fullname = fullname;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+
+    public boolean checkPassword(String candidate) {
+        return this.password.equals(candidate);
     }
 }
+

@@ -1,0 +1,101 @@
+@startuml
+skinparam backgroundColor #1a1a1a
+skinparam classBackgroundColor #1a1a1a
+skinparam classBorderColor white
+skinparam classFontColor white
+skinparam classAttributeFontColor white
+skinparam arrowColor white
+skinparam arrowFontColor white
+skinparam classAttributeIconSize 0
+hide circle
+
+' ===== Domain Models (rich) =====
+class Medicine {
+  -id: Long
+  -brandName: String
+  -genericName: String
+  -strength: String
+  -dosageForm: String
+  -manufacturer: String
+  -batchNumber: String
+  -manufactureDate: Date
+  -expiryDate: Date
+  -unitPrice: Integer
+  -quantityInStock: Integer
+  +isExpired(): Boolean
+  +matchesSearch(query: String): Boolean
+  +hasSufficientStock(quantity: Integer): Boolean
+  +reduceStock(quantity: Integer): void
+}
+
+class User {
+  -id: Long
+  -username: String
+  -password: String
+  -fullName: String
+  +checkPassword(candidate: String): Boolean
+}
+
+class SaleItem {
+  -id: Long
+  -medicineName: String
+  -unitPriceAtSale: Integer
+  -quantity: Integer
+  +getLineTotal(): Integer
+}
+
+class Sale {
+  -id: Long
+  -dateTime: DateTime
+  -username: String
+  -items: SaleItem[1..*]
+  +getTotalAmount(): Integer
+}
+
+Sale "1" *-- "1..*" SaleItem : contains
+
+'Medicine ..> InsufficientStockException
+'Medicine ..> ValidationException
+'SaleItem ..> ValidationException
+
+' ==== Exceptions ====
+class PharmacyException
+class AuthenticationException extends PharmacyException
+class EntityNotFoundException extends PharmacyException
+class InsufficientStockException extends PharmacyException
+class ValidationException extends PharmacyException
+
+' ==== Repository Layer ====
+interface Repository<T, ID> {
+  +count(): Long
+  +save(entity: T): T
+  +findById(id: ID): T
+  +findAll(): T[1..*]
+  +deleteById(id: ID): void
+  +deleteAll(): void
+}
+
+interface MedicineRepository extends Repository<Medicine, Long> {
+  +searchByName(query: String): Medicine[1..*]
+}
+interface UserRepository extends Repository<User, Long> {
+  +findByUsername(username: String): User
+}
+interface SaleRepository extends Repository<Sale, Long> {
+}
+
+class InMemoryMedicineRepository implements MedicineRepository
+class InMemoryUserRepository implements UserRepository
+class InMemorySaleRepository implements SaleRepository
+
+MedicineRepository "1" o-- "0..*" Medicine
+UserRepository "1" o-- "0..*" User
+SaleRepository "1" o-- "0..*" Sale
+
+'InMemoryMedicineRepository ..> EntityNotFoundException/ENFException
+'InMemoryMedicineRepository ..> ValidationException
+'Medicine ..> EntityNotFoundException
+
+' ==== DTOs ====
+
+@enduml
